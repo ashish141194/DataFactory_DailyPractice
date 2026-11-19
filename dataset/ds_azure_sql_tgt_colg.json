@@ -1,0 +1,31 @@
+{
+	"name": "ds_azure_sql_tgt_colg",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_Azure_SQL",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"pDsTableName": {
+				"type": "string"
+			},
+			"pDsSchemaName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().pDsSchemaName",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().pDsTableName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

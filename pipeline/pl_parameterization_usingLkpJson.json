@@ -1,0 +1,151 @@
+{
+	"name": "pl_parameterization_usingLkpJson",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_JSON_ParamFile",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "ds_adls_json_param_file",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_JSON_ParamFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_JSON_ParamFile').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy_Parameterized",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_adls_Parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"pDsSrcContainerName": {
+											"value": "@item().pPlSrcContainerName",
+											"type": "Expression"
+										},
+										"pDsSrcSourcePath": {
+											"value": "@item().pPlSrcSourcePath",
+											"type": "Expression"
+										},
+										"pDsSrcFileName": {
+											"value": "@item().pPlSrcFileName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_adls_tgt_Parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"pDsTgtContainerName": {
+											"value": "@item().pPlTgtContainerName",
+											"type": "Expression"
+										},
+										"pDsTgtcSourcePath": {
+											"value": "@item().pPlTgtTargetPath",
+											"type": "Expression"
+										},
+										"pDsTgtFileName": {
+											"value": "@item().pPlTgtFileName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "Multiple_Activity_Practice"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-11-19T14:24:51Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

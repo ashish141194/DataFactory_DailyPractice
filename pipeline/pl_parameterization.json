@@ -1,0 +1,123 @@
+{
+	"name": "pl_parameterization",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_Parameterized",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_adls_Parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"pDsSrcContainerName": {
+								"value": "@pipeline().parameters.pPlSrcContainerName",
+								"type": "Expression"
+							},
+							"pDsSrcSourcePath": {
+								"value": "@pipeline().parameters.pPlSrcSourcePath",
+								"type": "Expression"
+							},
+							"pDsSrcFileName": {
+								"value": "@pipeline().parameters.pPlSrcFileName",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_adls_tgt_Parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"pDsTgtContainerName": {
+								"value": "@pipeline().parameters.pPlTgtContainerName",
+								"type": "Expression"
+							},
+							"pDsTgtcSourcePath": {
+								"value": "@pipeline().parameters.pPlTgtTargetPath",
+								"type": "Expression"
+							},
+							"pDsTgtFileName": {
+								"value": "@pipeline().parameters.pPlTgtFileName",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"pPlSrcContainerName": {
+				"type": "string",
+				"defaultValue": "cr-clintrial"
+			},
+			"pPlSrcSourcePath": {
+				"type": "string",
+				"defaultValue": "sourcefiles/Inbound"
+			},
+			"pPlSrcFileName": {
+				"type": "string"
+			},
+			"pPlTgtContainerName": {
+				"type": "string",
+				"defaultValue": "cr-clintrial-tgt"
+			},
+			"pPlTgtTargetPath": {
+				"type": "string",
+				"defaultValue": "Outbound"
+			},
+			"pPlTgtFileName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Multiple_Activity_Practice"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-11-19T13:42:35Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
