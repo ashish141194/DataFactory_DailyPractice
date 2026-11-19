@@ -1,0 +1,45 @@
+{
+	"name": "ds_adls_Parameterized",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adls_gen2",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"pDsSrcContainerName": {
+				"type": "string"
+			},
+			"pDsSrcSourcePath": {
+				"type": "string"
+			},
+			"pDsSrcFileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().pDsSrcFileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().pDsSrcSourcePath",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().pDsSrcContainerName",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

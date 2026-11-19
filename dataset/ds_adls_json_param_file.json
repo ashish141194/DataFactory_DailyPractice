@@ -1,0 +1,43 @@
+{
+	"name": "ds_adls_json_param_file",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adls_gen2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "Src_Tgt_ParamFile.json",
+				"folderPath": "Param Files",
+				"fileSystem": "cr-clintrial"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"customerId": {
+					"type": "string"
+				},
+				"firstName": {
+					"type": "string"
+				},
+				"lastName": {
+					"type": "string"
+				},
+				"email": {
+					"type": "string"
+				},
+				"phone": {
+					"type": "string"
+				},
+				"city": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
