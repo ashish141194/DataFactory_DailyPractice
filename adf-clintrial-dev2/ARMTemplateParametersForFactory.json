@@ -1,0 +1,42 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-clintrial-dev2"
+		},
+		"RestService_password": {
+			"value": ""
+		},
+		"ls_Azure_SQL_password": {
+			"value": ""
+		},
+		"ls_adls_Parameterized_accountKey": {
+			"value": ""
+		},
+		"ls_adls_gen2_accountKey": {
+			"value": ""
+		},
+		"RestService_properties_typeProperties_url": {
+			"value": "https://jsonplaceholder.typicode.com/posts"
+		},
+		"RestService_properties_typeProperties_userName": {
+			"value": "aa"
+		},
+		"ls_Azure_SQL_properties_typeProperties_server": {
+			"value": "sql-clintrial-dev.database.windows.net"
+		},
+		"ls_Azure_SQL_properties_typeProperties_database": {
+			"value": "sqldb-clintrial-dev"
+		},
+		"ls_Azure_SQL_properties_typeProperties_userName": {
+			"value": "CloudSAb52df281"
+		},
+		"ls_adls_Parameterized_properties_typeProperties_url": {
+			"value": "https://stclintrialdev2.dfs.core.windows.net/"
+		},
+		"ls_adls_gen2_properties_typeProperties_url": {
+			"value": "https://stclintrialdev2.dfs.core.windows.net/"
+		}
+	}
+}
