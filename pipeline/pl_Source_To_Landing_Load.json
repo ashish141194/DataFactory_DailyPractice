@@ -61,12 +61,21 @@
 								"secureOutput": false,
 								"secureInput": false
 							},
-							"userProperties": [],
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "@{item().SrcSchemaName}.@{item().SrcTableName}"
+								},
+								{
+									"name": "Destination",
+									"value": "@{item().SrcSchemaName}.@{item().SrcTableName}"
+								}
+							],
 							"typeProperties": {
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "@if(\r\n    equals(item().IngestionType, 'Incremental'),\r\n    concat(\r\n        'SELECT * FROM ',\r\n        item().SrcSchemaName,\r\n        '.',\r\n        item().SrcTableName,\r\n        ' WHERE ',\r\n        item().WatermarkColName,\r\n        ' >= ''',\r\n        item().WatermarkColValue,\r\n        ''''\r\n    ),\r\n    concat(\r\n        'SELECT * FROM ',\r\n        item().SrcSchemaName,\r\n        '.',\r\n        item().SrcTableName\r\n    )\r\n)",
+										"value": "@if(\n    equals(item().IngestionType, 'Incremental'),\n    concat(\n        'SELECT * FROM ',\n        item().SrcSchemaName,\n        '.',\n        item().SrcTableName,\n        ' WHERE ',\n        item().WatermarkColName,\n        ' >= ''',\n        item().WatermarkColValue,\n        ''''\n    ),\n    concat(\n        'SELECT * FROM ',\n        item().SrcSchemaName,\n        '.',\n        item().SrcTableName\n    )\n)",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -75,7 +84,8 @@
 								"sink": {
 									"type": "ParquetSink",
 									"storeSettings": {
-										"type": "AzureBlobFSWriteSettings"
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
 									},
 									"formatSettings": {
 										"type": "ParquetWriteSettings"
@@ -117,11 +127,11 @@
 											"type": "Expression"
 										},
 										"pDsTgtFolderName": {
-											"value": "@concat(\n    item().SrcSchemaName,\n    '/*/',\n    item().SrcTableName,\n    '/ingest_date=',\n    formatDateTime(utcNow(),'yyyy-MM-dd')\n)",
+											"value": "@concat(\n    'Landing/',\n    item().SrcTableName,\n    '/ingest_date=',\n    formatDateTime(utcNow(),'yyyy-MM-dd')\n)",
 											"type": "Expression"
 										},
 										"pDsTgtFileName": {
-											"value": "@concat(\n    item().SrcTableName,\n    '/',\n    formatDateTime(utcNow(),'yyyyMMddHHmmss'),\n    '.parquet'\n)\n",
+											"value": "@concat(\n    item().SrcTableName,\n    '_',\n    formatDateTime(utcNow(),'yyyyMMddHHmmss'),\n    '.parquet'\n)\n",
 											"type": "Expression"
 										}
 									}
