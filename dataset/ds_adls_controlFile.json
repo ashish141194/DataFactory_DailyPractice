@@ -1,0 +1,19 @@
+{
+	"name": "ds_adls_controlFile",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adls_gen2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "ControlFileBronzeToSilverLoad.json",
+				"fileSystem": "cr-clintrial-uat"
+			}
+		},
+		"schema": {}
+	}
+}
