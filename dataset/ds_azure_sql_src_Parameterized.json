@@ -1,0 +1,30 @@
+{
+	"name": "ds_azure_sql_src_Parameterized",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_Azure_SQL",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"pDsSchemaName": {
+				"type": "string"
+			},
+			"pDsTableName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().pDsSchemaName",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().pDsTableName",
+				"type": "Expression"
+			}
+		}
+	}
+}

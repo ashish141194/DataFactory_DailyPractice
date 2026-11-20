@@ -1,0 +1,41 @@
+{
+	"name": "ds_adls_parquest_parameterized",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adls_gen2",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"pDsTgtContainerName": {
+				"type": "string"
+			},
+			"pDsTgtFolderName": {
+				"type": "string"
+			},
+			"pDsTgtFileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().pDsTgtFileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().pDsTgtFolderName",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().pDsTgtContainerName",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

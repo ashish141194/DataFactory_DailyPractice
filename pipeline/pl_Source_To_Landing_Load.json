@@ -1,0 +1,245 @@
+{
+	"name": "pl_Source_To_Landing_Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_on_Control_Tbl_Src_to_Landing",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_src_Parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"pDsSchemaName": "dbo",
+							"pDsTableName": "srcEdcClintrailToLandControl"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach_Iterate_all_src_tables",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_on_Control_Tbl_Src_to_Landing",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_on_Control_Tbl_Src_to_Landing').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Copy_Src_Tbl_to_Landing",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "@{item().SrcSchemaName}.@{item().SrcTableName}"
+								},
+								{
+									"name": "Destination",
+									"value": "@{item().SrcSchemaName}.@{item().SrcTableName}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "@if(\n    equals(item().IngestionType, 'Incremental'),\n    concat(\n        'SELECT * FROM ',\n        item().SrcSchemaName,\n        '.',\n        item().SrcTableName,\n        ' WHERE ',\n        item().WatermarkColName,\n        ' >= ''',\n        item().WatermarkColValue,\n        ''''\n    ),\n    concat(\n        'SELECT * FROM ',\n        item().SrcSchemaName,\n        '.',\n        item().SrcTableName\n    )\n)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_azure_sql_src_Parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"pDsSchemaName": {
+											"value": "@item().SrcSchemaName",
+											"type": "Expression"
+										},
+										"pDsTableName": {
+											"value": "@item().SrcTableName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_adls_parquest_parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"pDsTgtContainerName": {
+											"value": "@item().LandingContainerName",
+											"type": "Expression"
+										},
+										"pDsTgtFolderName": {
+											"value": "@concat(\n    'Landing/',\n    item().SrcTableName,\n    '/ingest_date=',\n    formatDateTime(utcNow(),'yyyy-MM-dd')\n)",
+											"type": "Expression"
+										},
+										"pDsTgtFileName": {
+											"value": "@concat(\n    item().SrcTableName,\n    '_',\n    formatDateTime(utcNow(),'yyyyMMddHHmmss'),\n    '.parquet'\n)\n",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Lookup_To_fetch_max_ingestion_dt",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Copy_Src_Tbl_to_Landing",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "@concat(\n    'SELECT MAX([',\n    coalesce(item().WatermarkColName, 'MODIFIED_TS'),\n    ']) AS NewWatermark FROM ',\n    item().SrcSchemaName,\n    '.',\n    item().SrcTableName\n)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "ds_azure_sql_src_Parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"pDsSchemaName": {
+											"value": "@item().SrcSchemaName",
+											"type": "Expression"
+										},
+										"pDsTableName": {
+											"value": "@item().SrcTableName",
+											"type": "Expression"
+										}
+									}
+								}
+							}
+						},
+						{
+							"name": "Stored procedure to upd control tbl",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Lookup_To_fetch_max_ingestion_dt",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[usp_UpdateWatermark]",
+								"storedProcedureParameters": {
+									"NewWatermark": {
+										"value": {
+											"value": "@activity('Lookup_To_fetch_max_ingestion_dt').output.firstRow.NewWatermark",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"SrcSchemaName": {
+										"value": {
+											"value": "@item().SrcSchemaName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"SrcTableName": {
+										"value": {
+											"value": "@item().SrcTableName",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_Azure_SQL",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "Clintrial_UAT"
+		},
+		"annotations": []
+	}
+}
