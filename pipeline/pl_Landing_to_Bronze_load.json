@@ -1,0 +1,113 @@
+{
+	"name": "pl_Landing_to_Bronze_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_On_Control_Tbl_Landing_to_Bronze",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_src_Parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"pDsSchemaName": "dbo",
+							"pDsTableName": "ControlTableLandingToBronze"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach_Iterrate_each_landing_file",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_On_Control_Tbl_Landing_to_Bronze",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_On_Control_Tbl_Landing_to_Bronze').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Notebook_Landing_to_Bronze_load",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "File_in_Load",
+									"value": "@item().srcfile"
+								}
+							],
+							"typeProperties": {
+								"notebookPath": "/Users/ashishagaikwad2@gmail.com/Data_Engineering/Clintrial_Project_Work/Landing_to_Bronze/nb_Landing_to_Bronze_Load",
+								"baseParameters": {
+									"srcfile": {
+										"value": "@item().srcfile",
+										"type": "Expression"
+									},
+									"storageAccName": {
+										"value": "@item().storageAccName",
+										"type": "Expression"
+									},
+									"srcContainerName": {
+										"value": "@item().srcContainerName",
+										"type": "Expression"
+									},
+									"tgtCatalog": {
+										"value": "@item().tgtCatalog",
+										"type": "Expression"
+									},
+									"tgtSchema": {
+										"value": "@item().tgtSchema",
+										"type": "Expression"
+									},
+									"tgtTableName": {
+										"value": "@item().tgtTableName",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_databricks_clintrial",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "Clintrial_UAT"
+		},
+		"annotations": []
+	}
+}
